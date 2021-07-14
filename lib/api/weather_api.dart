@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:weather_app/models/search_weather.dart';
 import 'package:weather_app/models/weather.dart';
 
 class WeatherApiClient {
@@ -44,7 +45,7 @@ class WeatherApiClient {
   }
 
   Future<List<Weather>> get7Day(
-      {required double latitude, required double longitude}) async {
+      {required double? latitude, required double? longitude}) async {
     final uri = _buildUri('onecall', {
       'lat': latitude.toString(),
       'lon': longitude.toString(),
@@ -61,6 +62,24 @@ class WeatherApiClient {
     return Weather.from7DayJson(weatherJson['daily']);
   }
 
+  Future<List<SearchWeather>> getSearch7Day(
+      {required double? latitude, required double? longitude}) async {
+    final uri = _buildUri('onecall', {
+      'lat': latitude.toString(),
+      'lon': longitude.toString(),
+      'exclude': 'hourly,current,minutely,alerts'
+    });
+
+    final res = await this.httpClient.get(uri);
+
+    if (res.statusCode != 200) {
+      throw HTTPException(res.statusCode, "unable to fetch weather data");
+    }
+
+    final weatherJson = json.decode(res.body);
+    return SearchWeather.from7DayJson(weatherJson['daily']);
+  }
+
   Future<Weather> getWeatherData(String cityName) async {
     final uri = _buildUri('weather', {'q': cityName});
 
@@ -72,6 +91,19 @@ class WeatherApiClient {
 
     final weatherJson = json.decode(res.body);
     return Weather.fromJson(weatherJson);
+  }
+
+  Future<SearchWeather> getSearchWeatherData(String cityName) async {
+    final uri = _buildUri('weather', {'q': cityName});
+
+    final res = await this.httpClient.get(uri);
+
+    if (res.statusCode != 200) {
+      throw HTTPException(res.statusCode, "unable to fetch weather data");
+    }
+
+    final weatherJson = json.decode(res.body);
+    return SearchWeather.fromJson(weatherJson);
   }
 }
 
