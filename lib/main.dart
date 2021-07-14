@@ -9,7 +9,9 @@ import 'package:weather_app/screens/today.dart';
 
 import 'api/weather_api.dart';
 import 'bloc/weather_bloc.dart';
-import 'bloc/weather_event.dart';
+import 'bloc/weather_event.dart' as we;
+import 'bloc/search_weather_bloc.dart';
+import 'bloc/search_weather_event.dart';
 import 'constants.dart';
 
 void main() {
@@ -25,18 +27,29 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: _title,
-      home: BlocProvider(
-        create: (context) => WeatherBloc(
-          weatherRepository: WeatherRepository(
-            weatherApiClient: WeatherApiClient(
-                httpClient: http.Client(),
-                apiKey: apiKey),
+    return MultiBlocProvider(
+      providers: [
+
+        BlocProvider(
+          create: (context) => WeatherBloc(
+            weatherRepository: WeatherRepository(
+              weatherApiClient:
+              WeatherApiClient(httpClient: http.Client(), apiKey: apiKey),
+            ),
           ),
         ),
-        child: MyStatefulWidget(),
+        BlocProvider(
+            create: (context) => SearchWeatherBloc(
+                weatherRepository: WeatherRepository(
+                  weatherApiClient: WeatherApiClient(
+                      httpClient: http.Client(), apiKey: apiKey),
+                ))),
+      ],
+
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: _title,
+        home: MyStatefulWidget(),
       ),
     );
   }
@@ -87,7 +100,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
 
         print(position.toString());
 
-        _weatherBloc.add(FetchWeather(
+        _weatherBloc.add(we.FetchWeather(
           longitude: position.longitude,
           latitude: position.latitude,
         ));
@@ -137,7 +150,6 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       body: Center(
         child: _widgetOptions.elementAt(_selectedIndex),
       ),
@@ -147,17 +159,14 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today_outlined),
             label: todayText,
-
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.wysiwyg_outlined),
             label: weeklyText,
-
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.share),
             label: shareText,
-
           ),
         ],
         currentIndex: _selectedIndex,

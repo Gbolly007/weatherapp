@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:weather_app/bloc/weather_bloc.dart';
-import 'package:weather_app/bloc/weather_state.dart' as sw;
-import 'package:weather_app/screens/bottomNavBar.dart';
+import 'package:weather_app/bloc/search_weather_bloc.dart';
+import 'package:weather_app/bloc/search_weather_event.dart';
+import 'package:weather_app/bloc/search_weather_state.dart';
+import 'package:weather_app/models/search_weather.dart';
+import 'package:weather_app/screens/today.dart';
+import 'package:weather_app/searchField.dart';
+
 import '../constants.dart';
 
-
-class TodayScreen extends StatelessWidget {
-  TodayScreen({Key? key}) : super(key: key);
-
+class SearchToday extends StatelessWidget {
   String capitalize(String string) {
     if (string.isEmpty) {
       return string;
@@ -22,14 +23,43 @@ class TodayScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
+    final weatherBloc = BlocProvider.of<SearchWeatherBloc>(context);
     return Scaffold(
-      body: BlocBuilder<WeatherBloc, sw.WeatherState>(
-        builder: (context, state) {
-          if (state is sw.WeatherLoaded) {
-            return ListView(
-              shrinkWrap: true,
-              children: [
+      body: ListView(
+        children: [
+          BlocBuilder<SearchWeatherBloc, SearchWeatherState>(
+              builder: (context, state) {
+            if (state is WeatherIsNotSearched)
+              return Padding(
+                padding: const EdgeInsets.only(top: 20.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                      color: Color(0xfff5f8fd),
+                      borderRadius: BorderRadius.circular(30)),
+                  margin: EdgeInsets.symmetric(horizontal: 24),
+                  padding: EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    children: <Widget>[
+                      SearchField(txt: txt),
+                      InkWell(
+                        onTap: () async {
+                          weatherBloc.add(FetchWeather(city: txt.text));
+                        },
+                        child: Container(
+                          child: Icon(
+                            Icons.search,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            else if (state is WeatherLoading)
+              return Center(child: CircularProgressIndicator());
+            else if (state is WeatherLoaded)
+              return ListView(shrinkWrap: true, children: [
                 Container(
                   color: kGeneralColor,
                   height: MediaQuery.of(context).size.height * 0.6,
@@ -44,12 +74,9 @@ class TodayScreen extends StatelessWidget {
                           children: [
                             Icon(Icons.menu,color: Colors.white,),
                             GestureDetector(
-                              onTap: (){
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => BottomNavBar()),
-                                );
-                              },
+                                onTap: (){
+                                  weatherBloc.add(ResetWeather());
+                                },
                                 child: Icon(Icons.search,color: Colors.white,))
                           ],
                         ),
@@ -140,8 +167,7 @@ class TodayScreen extends StatelessWidget {
                                   width: 10,
                                 ),
                                 Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(feelslikeText,
                                         style: weatherDataStyle),
@@ -164,11 +190,9 @@ class TodayScreen extends StatelessWidget {
                                   width: 10,
                                 ),
                                 Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(humidityText,
-                                        style: weatherDataStyle),
+                                    Text(humidityText, style: weatherDataStyle),
                                     Text(
                                       state.weather.humidity!
                                               .toStringAsFixed(0) +
@@ -193,8 +217,7 @@ class TodayScreen extends StatelessWidget {
                                   width: 10,
                                 ),
                                 Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(windText, style: weatherDataStyle),
                                     Text(
@@ -215,14 +238,11 @@ class TodayScreen extends StatelessWidget {
                                   width: 10,
                                 ),
                                 Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(pressureText,
-                                        style: weatherDataStyle),
+                                    Text(pressureText, style: weatherDataStyle),
                                     Text(
-                                      state.weather.pressure.toString() +
-                                          ' Pa',
+                                      state.weather.pressure.toString() + ' Pa',
                                       style: weatherValueStyle,
                                     )
                                   ],
@@ -235,25 +255,30 @@ class TodayScreen extends StatelessWidget {
                     ),
                   ),
                 )
-              ],
-            );
-          }
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        },
+              ]);
+            else
+              return Padding(
+                padding: const EdgeInsets.all(30.0),
+                child: GestureDetector(
+                  onTap: (){
+                    weatherBloc.add(ResetWeather());
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.all(15.0),
+                    padding: const EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black)
+                    ),
+                    child: Text(
+                      "Location, not found. Click to search again",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  ),
+                ),
+              );
+          }),
+        ],
       ),
     );
-  }
-}
-
-class WeatherIconWidget extends StatelessWidget {
-  const WeatherIconWidget({required this.icn});
-
-  final IconData icn;
-
-  @override
-  Widget build(BuildContext context) {
-    return Icon(icn, size: 25.0, color: Colors.grey[800]);
   }
 }

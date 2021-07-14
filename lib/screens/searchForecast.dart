@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:weather_app/bloc/weather_bloc.dart';
-import 'package:weather_app/bloc/weather_state.dart';
+import 'package:weather_app/bloc/search_weather_bloc.dart';
+import 'package:weather_app/bloc/search_weather_state.dart';
+import 'package:weather_app/searchField.dart';
 
 import '../constants.dart';
 
-class ForcastScreen extends StatelessWidget {
-  ForcastScreen({Key? key}) : super(key: key);
+class SearchForecast extends StatelessWidget {
+
   String formatTimestamp(int timestamp) {
     var format = new DateFormat('d MMM, hh:mm a');
     var date = new DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
@@ -54,7 +55,7 @@ class ForcastScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<WeatherBloc, WeatherState>(
+    return BlocBuilder<SearchWeatherBloc, SearchWeatherState>(
       builder: (context, state) {
         if (state is WeatherLoaded) {
           return Column(
@@ -66,6 +67,7 @@ class ForcastScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+
                     Padding(
                       padding: const EdgeInsets.all(24.0),
                       child: Row(

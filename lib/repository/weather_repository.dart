@@ -1,5 +1,6 @@
 
 import 'package:weather_app/api/weather_api.dart';
+import 'package:weather_app/models/search_weather.dart';
 import 'package:weather_app/models/weather.dart';
 
 class WeatherRepository {
@@ -20,5 +21,18 @@ class WeatherRepository {
     // getMinMax(weathers);
     return weather;
   }
+
+  Future<SearchWeather> getSearchWeather({required String city}) async{
+    var weather = await weatherApiClient.getSearchWeatherData(city);
+
+    var weathers = await weatherApiClient.getSearch7Day(
+        latitude: weather.lat, longitude: weather.lat);
+
+    weather.forecast = weathers;
+
+    return weather;
+  }
+
+
 
 }
